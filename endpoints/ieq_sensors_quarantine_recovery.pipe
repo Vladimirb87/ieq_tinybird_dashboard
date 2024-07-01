@@ -1,0 +1,102 @@
+TOKEN "ieq_read" READ
+
+NODE test_0
+SQL >
+
+    select
+       coalesce(
+          toInt16(abs_h),
+          0
+       ) as abs_h,
+       coalesce(
+          toFloat32(ch2o),
+          0
+       ) as ch2o,
+       coalesce(
+          toFloat32(co),
+          0
+       ) as co,
+       coalesce(
+          toInt32(co2),
+          0
+       ) as co2,
+       coalesce(
+          toFloat32(h),
+          0
+       ) as h,
+       coalesce(
+          toInt16(light),
+          0
+       ) as light,
+       mac,
+       coalesce(
+          toInt16(noise),
+          0
+       ) as noise,
+       coalesce(
+          toInt16(nox_index),
+          0
+       ) as nox_index,
+       coalesce(
+          toFloat32(o3),
+          0
+       ) as o3,
+       coalesce(
+          toFloat32(p),
+          0
+       ) as p,
+       coalesce(
+          toFloat32(pm1),
+          0
+       ) as pm1,
+       coalesce(
+          toFloat32(pm10),
+          0
+       ) as pm10,
+       coalesce(
+          toFloat32(pm25),
+          0
+       ) as pm25,
+       coalesce(
+          toFloat32(pm4),
+          0
+       ) as pm4,
+       coalesce(
+          toFloat32(pm25),
+          0
+       ) as pm25,
+       status_connection,
+       status_fw,
+       status_ip,
+       status_network,
+       coalesce(
+          toInt16(status_signal),
+          0
+       ) as status_signal,
+       coalesce(
+          toFloat32(t),
+          0
+       ) as t,
+       coalesce(
+          toInt64(ts),
+          0
+       ) as ts,
+       coalesce(
+          toFloat32(voc),
+          0
+       ) as voc,
+       coalesce(
+          toInt16(voc_index),
+          0
+       ) as voc_index
+    from ieq_sensors_quarantine
+    WHERE ts is not null
+
+
+
+NODE ieq_sensors_quarantine_recovery_1
+SQL >
+
+    SELECT * FROM test_0
+
+

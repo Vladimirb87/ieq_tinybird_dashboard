@@ -1,0 +1,31 @@
+TOKEN "ieq_read" READ
+
+NODE ieq_converted_data_0
+SQL >
+
+    %
+    select
+      ts * 1000 as timestamp,
+      toDateTime(ts) as timestamp_dt,
+      status_connection as status_connection,
+      status_signal as status_signal,
+      mac as device,
+      co as value_co,
+      co2 as value_co2,
+      light as value_light,
+      noise as value_noise,
+      nox_index as value_nox_index,
+      o3 as value_o3,
+      p as value_pressure,
+      pm1 as value_pm1,
+      pm10 as value_pm10,
+      pm25 as value_pm25,
+      pm4 as value_pm4,
+      t as value_temperature,
+      h as value_humidity,
+      voc as value_voc
+    from ieq_sensors
+    WHERE timestamp >= {{ UInt64(fromDate, 0, required=True) }}
+    ORDER BY ts DESC
+
+

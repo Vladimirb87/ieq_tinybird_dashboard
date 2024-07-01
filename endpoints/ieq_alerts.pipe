@@ -1,0 +1,118 @@
+TOKEN "ieq_read" READ
+
+NODE ieq_test_0
+SQL >
+
+    %
+    SELECT
+      device,
+      timestamp,
+      name,
+      value,
+      groupArray(timestamp) OVER (
+        PARTITION BY device
+        ORDER BY timestamp ASC
+        Rows BETWEEN 1 PRECEDING AND CURRENT ROW
+      ) as timestamps,
+      groupArray(value) OVER (
+        PARTITION BY device
+        ORDER BY timestamp ASC
+        Rows BETWEEN 1 PRECEDING AND CURRENT ROW
+      ) as values
+    FROM (
+      SELECT
+        {{ String(name, 'temperature', required=True)}} as name,
+        (
+          CASE
+            WHEN name = 'temperature' THEN value_temperature
+            WHEN name = 'humidity' THEN value_humidity
+            ELSE value_temperature
+          END
+        ) as value,
+        device,
+        timestamp
+      FROM ieq_formatted
+    )
+    ORDER BY timestamp DESC
+
+
+
+NODE ieq_test_1
+SQL >
+
+    %
+    select
+      device,
+      name,
+      values as change,
+      {{ Int64(lowLimit, 23, required=True) }} as lowLimit,
+      {{ Int64(highLimit, 25, required=True) }} as highLimit,
+      (
+        CASE
+          WHEN values[1] > lowLimit AND values[2] <= lowLimit AND timestamps[2] != 0 THEN timestamps[2]
+          ELSE 0
+        END
+      ) as startOfLowLimit,
+      (
+        CASE
+          WHEN values[1] <= lowLimit AND values[2] > lowLimit AND timestamps[2] != 0 THEN timestamps[2]
+          ELSE 0
+        END
+      ) as endOfLowLimit,
+      (
+        CASE
+          WHEN values[1] < highLimit AND values[2] >= highLimit AND timestamps[2] != 0 THEN timestamps[2]
+          ELSE 0
+        END
+      ) as startOfHighLimit,
+      (
+        CASE
+          WHEN values[1] >= highLimit AND values[2] < highLimit AND timestamps[2] != 0 THEN timestamps[2]
+          ELSE 0
+        END
+      ) as endOfHighLimit,
+      (
+        CASE
+          WHEN startOfLowLimit <> 0 THEN startOfLowLimit
+          WHEN endOfLowLimit <> 0 THEN endOfLowLimit
+          WHEN startOfHighLimit <> 0 THEN startOfHighLimit
+          WHEN endOfHighLimit <> 0 THEN endOfHighLimit
+          ELSE 0
+        END
+      ) as limitTime,
+      (
+        CASE
+          WHEN startOfLowLimit <> 0 THEN 'low_limit_started'
+          WHEN endOfLowLimit <> 0 THEN 'low_limit_ended'
+          WHEN startOfHighLimit <> 0 THEN 'high_limit_started'
+          WHEN endOfHighLimit <> 0 THEN 'high_limit_ended'
+          ELSE 'n/a'
+        END
+       ) as limitType
+    FROM ieq_test_0
+    WHERE (
+      startOfLowLimit <> 0 OR
+      endOfLowLimit <> 0 OR
+      startOfHighLimit <> 0 OR
+      endOfHighLimit <> 0
+    )
+    ORDER BY limitTime DESC
+
+
+
+NODE ieq_alerts_2
+SQL >
+
+    %
+    SELECT
+      *
+    FROM (
+      SELECT
+        ROW_NUMBER() OVER (PARTITION BY device) AS index,
+        *
+      FROM ieq_test_1
+    )
+    WHERE
+      index <= {{ Int64(topRows, 10, required=false) }}
+
+

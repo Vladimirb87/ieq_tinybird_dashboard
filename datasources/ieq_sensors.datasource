@@ -1,0 +1,32 @@
+DESCRIPTION >
+    raw events from Atmocube
+
+SCHEMA >
+    `abs_h` Int16 `json:$.abs_h` DEFAULT 0,
+    `ch2o` Float32 `json:$.ch2o` DEFAULT 0,
+    `co` Float32 `json:$.co` DEFAULT 0,
+    `co2` Int32 `json:$.co2` DEFAULT 0,
+    `h` Float32 `json:$.h` DEFAULT 0,
+    `light` Int16 `json:$.light` DEFAULT 0,
+    `mac` String `json:$.mac`,
+    `noise` Int16 `json:$.noise` DEFAULT 0,
+    `nox_index` Int16 `json:$.nox_index` DEFAULT 0,
+    `o3` Float32 `json:$.o3` DEFAULT 0,
+    `p` Float32 `json:$.p` DEFAULT 0,
+    `pm1` Float32 `json:$.pm1` DEFAULT 0,
+    `pm10` Float32 `json:$.pm10` DEFAULT 0,
+    `pm25` Float32 `json:$.pm25` DEFAULT 0,
+    `pm4` Float32 `json:$.pm4` DEFAULT 0,
+    `status_connection` String `json:$.status.connection`,
+    `status_fw` String `json:$.status.fw`,
+    `status_ip` String `json:$.status.ip`,
+    `status_network` String `json:$.status.network`,
+    `status_signal` Int16 `json:$.status.signal` DEFAULT 0,
+    `t` Float32 `json:$.t`,
+    `ts` Int64 `json:$.ts`,
+    `voc` Float32 `json:$.voc` DEFAULT 0,
+    `voc_index` Int16 `json:$.voc_index` DEFAULT 0
+
+ENGINE "MergeTree"
+ENGINE_SORTING_KEY "status_signal, ts, voc_index"
+ENGINE_TTL "toDateTime(ts) + toIntervalMonth(3)"

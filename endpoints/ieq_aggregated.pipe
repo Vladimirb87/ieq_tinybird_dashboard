@@ -1,0 +1,97 @@
+TOKEN "ieq_read" READ
+
+NODE ieq_airthings_aggregated_0
+SQL >
+
+    %
+     SELECT
+       toUnixTimestamp(toStartOfInterval(fromUnixTimestamp64Milli(timestamp), INTERVAL {{ UInt64(period, 6048, required=True) }} SECOND)) as start_time,
+       fromUnixTimestamp64Milli(start_time * 1000) as start_time_dt,
+       device,
+       status_signal as rssi,
+       value_co as value1,
+       value_co2 as value2,
+       value_light as value3,
+       value_noise as value4,
+       value_nox_index as value5,
+       value_o3 as value6,
+       value_pressure as value7,
+       value_pm1 as value8,
+       value_pm10 as value9,
+       value_pm25 as value10,
+       value_pm4 as value11,
+       value_temperature as value12,
+       value_humidity as value13,
+       'co' as metric1,
+       'co2' as metric2,
+       'light' as metric3,
+       'noise' as metric4,
+       'nox_index' as metric5,
+       'o3' as metric6,
+       'pressure' as metric7,
+       'pm1' as metric8,
+       'pm10' as metric9,
+       'pm25' as metric10,
+       'pm4' as metric11,
+       'temperature' as metric12,
+       'humidity' as metric13
+     FROM ieq_formatted
+     WHERE
+       timestamp >= {{ UInt64(date_from, 1718037108599, required=True) }} AND
+       timestamp <= {{ UInt64(date_to, 1718823348600, required=True) }}
+     ORDER BY start_time ASC
+
+
+
+NODE ieq_airthings_aggregated_1
+SQL >
+
+    %
+    SELECT
+      start_time,
+      fromUnixTimestamp64Milli(start_time * 1000) as start_time_dt,
+      first_value(device) as device,
+      avg(rssi) as min_rssi,
+      avg(value1) as value1,
+      avg(value2) as value2,
+      avg(value3) as value3,
+      avg(value4) as value4,
+      avg(value5) as value5,
+      avg(value6) as value6,
+      avg(value7) as value7,
+      avg(value8) as value8,
+      avg(value9) as value9,
+      avg(value10) as value10,
+      avg(value11) as value11,
+      avg(value12) as value12,
+      avg(value13) as value13,
+      groupArray(metric1)[1] as metric1,
+      groupArray(metric2)[1] as metric2,
+      groupArray(metric3)[1] as metric3,
+      groupArray(metric4)[1] as metric4,
+      groupArray(metric5)[1] as metric5,
+      groupArray(metric6)[1] as metric6,
+      groupArray(metric7)[1] as metric7,
+      groupArray(metric8)[1] as metric8,
+      groupArray(metric9)[1] as metric9,
+      groupArray(metric10)[1] as metric10,
+      groupArray(metric11)[1] as metric11,
+      groupArray(metric12)[1] as metric12,
+      groupArray(metric13)[1] as metric13
+    FROM ieq_airthings_aggregated_0
+    GROUP BY start_time
+    ORDER BY start_time
+
+
+
+NODE arthings_aggregated_2
+SQL >
+
+    SELECT
+      fromUnixTimestamp64Milli(start_time * 1000) as ts,
+      (start_time * 1000) as timestamp,
+      *
+    FROM ieq_airthings_aggregated_1
+    ORDER BY timestamp DESC
+
+

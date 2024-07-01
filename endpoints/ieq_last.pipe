@@ -1,0 +1,23 @@
+TOKEN "ieq_read" READ
+
+NODE ieq_last_0
+SQL >
+
+    %
+    SELECT * FROM (
+      SELECT
+        rowNumberInBlock() as index,
+        *
+      FROM ieq_formatted
+      ORDER BY timestamp DESC
+    ) 
+    WHERE index < {{ UInt64(top, 1, required=True) }}
+
+
+
+NODE ieq_last_1
+SQL >
+
+    SELECT * FROM ieq_last_0
+
+
